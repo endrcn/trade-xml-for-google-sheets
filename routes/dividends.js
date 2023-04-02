@@ -42,12 +42,29 @@ router.get('/:ticker', async (req, res, next) => {
         res.render("dividends", { data: [] });
     } finally {
 
-        let xmlData = `<?xml version="1.0" encoding="UTF-8"?>
-        <dividends>`;
+        let last5YearCount = 0;
+        let sumOfLast5YearRatio = 0;
+        let last10YearCount = 0;
+        let sumOfLast10YearRatio = 0;
 
+        let fiveYearsAgo = new Date().getFullYear() - 5;
+        let tenYearsAgo = new Date().getFullYear() - 10;
+
+        let xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+        <endrcn>
+        <dividends>`;
         for (let i = 0; i < dividends[ticker].length; i++) {
             let data = dividends[ticker][i];
             if (data) {
+                if (data.year >= tenYearsAgo) {
+                    last10YearCount++;
+                    sumOfLast10YearRatio += parseFloat(data.amount);
+                }
+
+                if (data.year >= fiveYearsAgo) {
+                    last5YearCount++;
+                    sumOfLast5YearRatio += parseFloat(data.amount);
+                }
 
                 xmlData += `
                 <dividend>
@@ -62,6 +79,18 @@ router.get('/:ticker', async (req, res, next) => {
         }
 
         xmlData += "</dividends>";
+        xmlData += `
+        <metadata>
+        <last-5-years>
+            <avg-amount>${(sumOfLast5YearRatio / 5).toFixed(2)}</avg-amount>
+            <dividend-count>${last5YearCount}</dividend-count>
+        </last-5-years>
+        <last-10-years>
+            <avg-amount>${(sumOfLast10YearRatio / 5).toFixed(2)}</avg-amount>
+            <dividend-count>${last10YearCount}</dividend-count>
+        </last-10-years>
+        </metadata>
+        </endrcn>`;
 
         res.setHeader('content-type', 'text/xml');
         res.send(xmlData);
