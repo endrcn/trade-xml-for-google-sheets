@@ -49,6 +49,7 @@ router.get('/:ticker', async (req, res, next) => {
         for (let i = 0; i < dividends[ticker].length; i++) {
             let data = dividends[ticker][i];
             if (data) {
+                
                 xmlData += `
                 <dividend>
                     <payoutratio>${data.payoutratio}%</payoutratio>
